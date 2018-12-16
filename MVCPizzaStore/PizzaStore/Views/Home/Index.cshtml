@@ -1,0 +1,16 @@
+﻿@model IEnumerable<PizzaStore.DataAccess.Users>
+
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <div>
+        <form  asp-controller="Users" asp-action="Index" method="GET" class="form-inline">
+            <label class="sr-only" for="search">Find by name: </label>
+            <input type="search" class="form-control mb-2 mr-sm-2 mb-sm-0" id="search" name="search" placeholder="Search" />
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
