@@ -43,18 +43,20 @@ namespace PizzaStore.Controllers
 
             return View(users);
         }
-        //public async task<iactionresult> orders(int id)
-        //{
-        //    ienumerable<userlocation> userslocations = _db.userlocation.where(u => u.userid == id);
+        public ActionResult Orders(int? id)
+        {
+            var usersLocation = from ul in _db.UserLocation
+                               where ul.UserId == id
+                               select ul;
 
+            IEnumerable < Orders > usersorders = new List<Orders>();
 
-        //    ienumerable<orders> usersorders = new list<orders>();
-
-        //    foreach(var items in userslocations)
-        //    {
-        //        usersorders = items.orders.where(o => o.userlocationid);
-        //    }
-        //}
+            foreach (var items in usersLocation)
+            {
+                usersorders = items.Orders.Where(o => o.UserLocationId == items.UserId);
+            }
+            return View(usersorders);
+        }
 
         // GET: Users/Create
         public IActionResult Create()
