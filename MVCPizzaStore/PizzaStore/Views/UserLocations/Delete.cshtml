@@ -1,4 +1,4 @@
-﻿@model PizzaStore.DataAccess.UserLocation
+﻿@model PizzaStore.Models.UserLocation
 
 @{
     ViewData["Title"] = "Delete";
@@ -23,12 +23,7 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.State)
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User.FirstName)
-        </dd class>
+   
     </dl>
     
     <form asp-action="Delete">

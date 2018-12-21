@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PizzaStore.DataAccess;
+using PizzaStore.Repos;
 
 namespace PizzaStore
 {
@@ -36,7 +37,7 @@ namespace PizzaStore
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-
+            services.AddScoped<IPizzaStoreRepository, PizzaStoreRepository>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }

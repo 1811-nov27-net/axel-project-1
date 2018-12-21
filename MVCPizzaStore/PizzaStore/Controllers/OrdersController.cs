@@ -1,55 +1,45 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+using PizzaStore.Repos;
+using PizzaStore.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using PizzaStore.DataAccess;
 
 namespace PizzaStore.Controllers
 {
     public class OrdersController : Controller
     {
-        private readonly PizzaStoreDBContext _context;
+        public IPizzaStoreRepository Repo { get; set; }
 
-        public OrdersController(PizzaStoreDBContext context)
+        public OrdersController(IPizzaStoreRepository repo)
         {
-            _context = context;
+            Repo = repo;
         }
 
-        // GET: Orders
-        public async Task<IActionResult> Index()
+        //// get: pizzaorders
+        public ActionResult Index()
         {
-            var pizzaStoreDBContext = _context.Orders.Include(o => o.Shop).Include(o => o.UserLocation);
-            return View(await pizzaStoreDBContext.ToListAsync());
+            IEnumerable<Orders> orders = Repo.GetAllOrders();
+            return View(orders);
+
         }
 
         // GET: Orders/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public ActionResult Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var users = Repo.GetUsersById(id);
 
-            var orders = await _context.Orders
-                .Include(o => o.Shop)
-                .Include(o => o.UserLocation)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (orders == null)
-            {
-                return NotFound();
-            }
-
-            return View(orders);
+            return View(users);
         }
 
         // GET: Orders/Create
         public IActionResult Create()
         {
-            ViewData["ShopId"] = new SelectList(_context.Store, "Id", "Address");
-            ViewData["UserLocationId"] = new SelectList(_context.UserLocation, "Id", "Address");
+            //ViewData["ShopId"] = new SelectList(Store, "Id", "Address");
+            //ViewData["UserLocationId"] = new SelectList(_db.UserLocation, "Id", "Address");
             return View();
         }
 
@@ -57,109 +47,19 @@ namespace PizzaStore.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserLocationId,ShopId,OrderTime,TotalDue")] Orders orders)
+        public ActionResult Create([Bind("Id,UserLocationId,ShopId")] Orders orders)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(orders);
-                await _context.SaveChangesAsync();
+                Repo.AddOrders(orders);
+                
+                Repo.Save();
+
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ShopId"] = new SelectList(_context.Store, "Id", "Address", orders.ShopId);
-            ViewData["UserLocationId"] = new SelectList(_context.UserLocation, "Id", "Address", orders.UserLocationId);
+           // return View(restaurant);
             return View(orders);
         }
 
-        // GET: Orders/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var orders = await _context.Orders.FindAsync(id);
-            if (orders == null)
-            {
-                return NotFound();
-            }
-            ViewData["ShopId"] = new SelectList(_context.Store, "Id", "Address", orders.ShopId);
-            ViewData["UserLocationId"] = new SelectList(_context.UserLocation, "Id", "Address", orders.UserLocationId);
-            return View(orders);
-        }
-
-        // POST: Orders/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserLocationId,ShopId,OrderTime,TotalDue")] Orders orders)
-        {
-            if (id != orders.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(orders);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!OrdersExists(orders.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["ShopId"] = new SelectList(_context.Store, "Id", "Address", orders.ShopId);
-            ViewData["UserLocationId"] = new SelectList(_context.UserLocation, "Id", "Address", orders.UserLocationId);
-            return View(orders);
-        }
-
-        // GET: Orders/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var orders = await _context.Orders
-                .Include(o => o.Shop)
-                .Include(o => o.UserLocation)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (orders == null)
-            {
-                return NotFound();
-            }
-
-            return View(orders);
-        }
-
-        // POST: Orders/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var orders = await _context.Orders.FindAsync(id);
-            _context.Orders.Remove(orders);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool OrdersExists(int id)
-        {
-            return _context.Orders.Any(e => e.Id == id);
-        }
     }
 }

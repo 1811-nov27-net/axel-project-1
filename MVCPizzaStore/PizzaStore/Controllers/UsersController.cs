@@ -1,51 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
-using PizzaStore.DataAccess;
+using PizzaStore.Models;
+using PizzaStore.Repos;
 
 namespace PizzaStore.Controllers
 {
     public class UsersController : Controller
     {
-        private readonly PizzaStoreDBContext _db;
+        public IPizzaStoreRepository Repo { get; }
 
-        public UsersController(PizzaStoreDBContext db)
+        public UsersController(IPizzaStoreRepository repo)
         {
-            _db = db;
+            Repo = repo;
         }
 
-        // GET: Users
-        public ActionResult Index([FromQuery]string search = "")
+        // GET: Users 
+        public ActionResult Index([FromQuery]string search)
         {
-            IEnumerable<Users> userSearched = _db.Users.Where(u => u.LastName.Contains(search) || u.FirstName.Contains(search));
-            return View(userSearched);
+            List<Users> userSearched = Repo.GetUsersBySearch(search);
+            var users = new Users();
+
+            foreach (var items in userSearched)
+            {
+               if(items.FirstName == search || items.LastName == search)
+                {
+                    users = Repo.GetUsersById(items.Id);
+                }
+            }
+            // var users = Repo.GetUsersById(id);
+            return RedirectToAction("Details", users.Id);
         }
 
         // GET: Users/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public ActionResult Details(int id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var users = await _db.Users
-                .Include(u => u.UserLocation)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (users == null)
-            {
-                return NotFound();
-            }
+            Users users = Repo.GetUsersById(id);
 
             return View(users);
         }
-        public ActionResult Orders(int? id)
+        public ActionResult PlaceOrder(int id)
         {
-            var usersLocation = from ul in _db.UserLocation
+            var usersLocation = from ul in Repo.GetAllUserLocations()
                                where ul.UserId == id
                                select ul;
 
@@ -69,31 +73,25 @@ namespace PizzaStore.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,FirstName,LastName")] Users users)
+        public  ActionResult Create([Bind("Id,FirstName,LastName")] Users users)
         {
-            if (ModelState.IsValid)
+         
+            if(ModelState.IsValid)
             {
-                _db.Add(users);
-                await _db.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                Repo.AddUsers(users);
             }
+            Repo.Save();
+
             return View(users);
         }
 
         // GET: Users/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public ActionResult Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            var users = await _db.Users.FindAsync(id);
-            if (users == null)
-            {
-                return NotFound();
-            }
-            return View(users);
+            Users user = Repo.GetUsersById(id);
+
+            return View(user);
         }
 
         // POST: Users/Edit/5
@@ -101,50 +99,32 @@ namespace PizzaStore.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,FirstName,LastName")] Users users)
+        public ActionResult Edit([FromRoute]int id, [Bind("FirstName,LastName")] Users users)
         {
-            if (id != users.Id)
+            try
             {
-                return NotFound();
-            }
+                if (ModelState.IsValid)
+                {
+                    var updated = Repo.GetUsersById(id);
+                    updated.FirstName = users.FirstName;
+                    updated.LastName = users.LastName;
+                    Repo.UpdateUsers(updated);
+                    Repo.Save();
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _db.Update(users);
-                    await _db.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!UsersExists(users.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return View(users);
             }
-            return View(users);
+           catch (DbUpdateConcurrencyException)
+            {
+                return View();
+            }
+          
         }
-
-        // GET: Users/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        //// GET: Users/Delete/5
+        public ActionResult Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var users = await _db.Users
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (users == null)
-            {
-                return NotFound();
-            }
+            Users users = Repo.GetUsersById(id);
 
             return View(users);
         }
@@ -152,17 +132,20 @@ namespace PizzaStore.Controllers
         // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public ActionResult DeleteConfirmed(int id, [BindNever] IFormCollection collection)
         {
-            var users = await _db.Users.FindAsync(id);
-            _db.Users.Remove(users);
-            await _db.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+            try
+            {
+                Repo.DeleteUsers(id);
 
-        private bool UsersExists(int id)
-        {
-            return _db.Users.Any(e => e.Id == id);
+                Repo.Save();
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                return View();
+            }
         }
     }
 }

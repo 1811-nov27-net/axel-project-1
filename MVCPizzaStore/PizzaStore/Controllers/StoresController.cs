@@ -2,48 +2,42 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using PizzaStore.DataAccess;
+using PizzaStore.Models;
+using PizzaStore.Repos;
 
 namespace PizzaStore.Controllers
 {
     public class StoresController : Controller
     {
-        private readonly PizzaStoreDBContext _context;
+        public IPizzaStoreRepository Repo { get; set; }
 
-        public StoresController(PizzaStoreDBContext context)
+        public StoresController(IPizzaStoreRepository repo)
         {
-            _context = context;
+            Repo = repo;
         }
 
         // GET: Stores
-        public async Task<IActionResult> Index()
+        public ActionResult Index()
         {
-            return View(await _context.Store.ToListAsync());
+            var stores = Repo.GetAllStores();
+            return View(stores);
         }
 
         // GET: Stores/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public ActionResult Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var store = await _context.Store
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (store == null)
-            {
-                return NotFound();
-            }
+            var store = Repo.GetStoreById(id);
 
             return View(store);
         }
 
         // GET: Stores/Create
-        public IActionResult Create()
+        public ActionResult Create()
         {
             return View();
         }
@@ -53,30 +47,21 @@ namespace PizzaStore.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Address,State")] Store store)
+        public ActionResult Create([Bind("Id,Address,State")] Store store)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(store);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                Repo.AddStores(store);
             }
+            Repo.Save();
             return View(store);
         }
-
         // GET: Stores/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public ActionResult Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            var store = await _context.Store.FindAsync(id);
-            if (store == null)
-            {
-                return NotFound();
-            }
+            Store store = Repo.GetStoreById(id);
+
             return View(store);
         }
 
@@ -85,50 +70,33 @@ namespace PizzaStore.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Address,State")] Store store)
+        public ActionResult Edit([FromRoute]int id, [Bind("Address,State")] Store store)
         {
-            if (id != store.Id)
+            try
             {
-                return NotFound();
-            }
+                if (ModelState.IsValid)
+                {
+                    var updated = Repo.GetStoreById(id);
+                    updated.Address = store.Address;
+                    updated.State = store.State;
+                    Repo.UpdateStore(updated);
+                    Repo.Save();
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(store);
-                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!StoreExists(store.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return View(store);
             }
-            return View(store);
+             catch (DbUpdateConcurrencyException)
+            {
+                return View(store);
+            }
+            
         }
 
         // GET: Stores/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public ActionResult Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var store = await _context.Store
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (store == null)
-            {
-                return NotFound();
-            }
+            Store store = Repo.GetStoreById(id);
 
             return View(store);
         }
@@ -136,17 +104,20 @@ namespace PizzaStore.Controllers
         // POST: Stores/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public ActionResult DeleteConfirmed(int id, [BindNever]IFormCollection collection)
         {
-            var store = await _context.Store.FindAsync(id);
-            _context.Store.Remove(store);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+            try
+            {
+                Repo.DeleteStore(id);
 
-        private bool StoreExists(int id)
-        {
-            return _context.Store.Any(e => e.Id == id);
+                Repo.Save();
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                return View();
+            }
         }
     }
 }

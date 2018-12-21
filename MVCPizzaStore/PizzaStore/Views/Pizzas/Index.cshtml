@@ -1,4 +1,4 @@
-﻿@model IEnumerable<PizzaStore.Models.UserLocation>
+﻿@model IEnumerable<PizzaStore.Models.Pizza>
 
 @{
     ViewData["Title"] = "Index";
@@ -13,12 +13,14 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Address)
+               Size
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.State)
+              Crust Type
             </th>
-        
+            <th>
+               Price
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -26,16 +28,20 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Address)
+                @Html.DisplayFor(modelItem => item.Name)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.State)
+                @Html.DisplayFor(modelItem => item.CrustType)
             </td>
-         
+            <td>
+                @Html.DisplayFor(modelItem => item.LinePrice)
+            </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <a asp-controller="PizzaOrders" asp-action="AddToPizzaOrder" asp-route-id="@item.Id">Add To Order</a>
+
             </td>
         </tr>
 }

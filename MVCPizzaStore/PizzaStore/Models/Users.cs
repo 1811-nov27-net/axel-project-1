@@ -9,11 +9,13 @@ namespace PizzaStore.Models
         public int Id { get; set; }
 
         [Required]
+        [MaxLength(128)]
         public string FirstName { get; set; }
 
         [Required]
+        [MaxLength(128)]
         public string LastName { get; set; }
 
-      //  public IEnumerable<UserLocation> UserLocations { get; set; }
+        public List<UserLocation> UserLocations { get; set; } = new List<UserLocation>();
     }
 }

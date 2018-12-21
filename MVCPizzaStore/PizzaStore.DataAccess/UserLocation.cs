@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace PizzaStore.DataAccess
 {
@@ -12,7 +13,11 @@ namespace PizzaStore.DataAccess
 
         public int Id { get; set; }
         public int UserId { get; set; }
+        [Required]
+        [StringLength(128)]
         public string Address { get; set; }
+        [Required]
+        [StringLength(128)]
         public string State { get; set; }
 
         public virtual Users User { get; set; }

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<PizzaStore.DataAccess.Orders>
+﻿@model IEnumerable<PizzaStore.Models.Orders>
 
 @{
     ViewData["Title"] = "Index";
@@ -18,12 +18,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.TotalDue)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Shop)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UserLocation)
-            </th>
+      
             <th></th>
         </tr>
     </thead>
@@ -36,12 +31,7 @@
             <td>
                 @Html.DisplayFor(modelItem => item.TotalDue)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Shop.Address)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserLocation.Address)
-            </td>
+   
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |

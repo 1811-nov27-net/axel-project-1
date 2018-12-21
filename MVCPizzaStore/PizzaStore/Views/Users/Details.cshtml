@@ -1,4 +1,4 @@
-﻿@model PizzaStore.DataAccess.Users
+﻿@model PizzaStore.Models.Users
 
 @{
     ViewData["Title"] = "Details";
@@ -28,3 +28,38 @@
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+
+@if (Model.UserLocations.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                   
+                    @Html.DisplayNameFor(model => model.UserLocations.First().Address)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.UserLocations.First().State)
+                </th>            
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.UserLocations)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Address)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.State)
+                    </td>
+                    <td>
+                        @Html.ActionLink("Details", "Details", "UserLocations", new { id = item.Id }) |
+                        @Html.ActionLink("Delete", "Delete", "UserLocations", new { id = item.Id })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

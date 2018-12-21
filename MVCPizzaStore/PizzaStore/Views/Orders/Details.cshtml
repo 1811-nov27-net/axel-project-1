@@ -1,4 +1,4 @@
-﻿@model PizzaStore.DataAccess.Orders
+﻿@model PizzaStore.Models.Orders
 
 @{
     ViewData["Title"] = "Details";
@@ -22,19 +22,6 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.TotalDue)
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Shop)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Shop.Address)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UserLocation)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UserLocation.Address)
-        </dd>
-    </dl>
 </div>
 <div>
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
