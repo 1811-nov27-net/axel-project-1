@@ -39,7 +39,7 @@ namespace PizzaStore.Controllers
         }
 
         // GET: Ingredients/Create
-        public ActionResult Create([FromQuery]int storeId, [FromQuery] int pizzaId)
+        public ActionResult Create()
         {
             var ing = new Ingredients
             {

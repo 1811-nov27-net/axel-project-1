@@ -19,20 +19,18 @@ namespace PizzaStore.Controllers
         }
 
         // GET: Users 
-        public ActionResult Index([FromQuery]string search)
+        public ActionResult Index([FromQuery]string search = "")
         {
             List<Users> userSearched = Repo.GetUsersBySearch(search);
-            var users = new Users();
 
-            foreach (var items in userSearched)
+            var 
+
+            if(userSearched.Count > 0)
             {
-               if(items.FirstName == search || items.LastName == search)
-                {
-                    users = Repo.GetUsersById(items.Id);
-                }
+               // return RedirectToAction(userSearched.FirstOrDefault());
             }
-            // var users = Repo.GetUsersById(id);
-            return RedirectToAction("Details", users.Id);
+
+            return View(userSearched);
         }
 
         // GET: Users/Details/5
