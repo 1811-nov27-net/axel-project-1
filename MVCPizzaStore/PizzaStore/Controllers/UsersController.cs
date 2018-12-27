@@ -23,13 +23,6 @@ namespace PizzaStore.Controllers
         {
             List<Users> userSearched = Repo.GetUsersBySearch(search);
 
-            var 
-
-            if(userSearched.Count > 0)
-            {
-               // return RedirectToAction(userSearched.FirstOrDefault());
-            }
-
             return View(userSearched);
         }
 
@@ -45,19 +38,25 @@ namespace PizzaStore.Controllers
 
             return View(users);
         }
+        [Route("PlaceOrder")]
         public ActionResult PlaceOrder(int id)
         {
             var usersLocation = from ul in Repo.GetAllUserLocations()
                                where ul.UserId == id
                                select ul;
 
-            IEnumerable < Orders > usersorders = new List<Orders>();
+        //    IEnumerable < Orders > usersorders = new List<Orders>();
 
             foreach (var items in usersLocation)
             {
-                usersorders = items.Orders.Where(o => o.UserLocationId == items.UserId);
+               if(items.UserId == id)
+                {
+                    TempData["UserLocationId"] = id;
+
+                    return RedirectToAction("Create", "PizzaOrders", id);
+                }
             }
-            return View(usersorders);
+            return RedirectToAction("Create", "PizzaOrders");
         }
 
         // GET: Users/Create

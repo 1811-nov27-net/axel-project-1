@@ -26,70 +26,56 @@ namespace PizzaStore.Controllers
         public ActionResult Details(int id)
         {
             PizzaOrder pizzaOrder = Repo.GetPizzaOrderById(id);
-            var webRest = new PizzaOrder
-            {
-                Id = pizzaOrder.Id,
-                Quantity = pizzaOrder.Quantity,
-                Pizza = pizzaOrder.Pizza.Select(y => new Pizza
-                {
-                    Id = y.Id,
-                    Name = y.Name,
-                    CrustType = y.CrustType,
-                    LinePrice = y.LinePrice
-                }).ToList()
-            };
-            return View(webRest);
+         
+
+            return View(pizzaOrder);
         }
 
         //// GET: PizzaOrders/Create
-        public ActionResult Create()
+        public ActionResult Create([FromQuery] int id)
         {
-
-            return View();
+            var pizzaOrder = new PizzaOrder
+            {
+                OrderId = id,
+            };
+            return View(pizzaOrder);
         }
-        [HttpPost]
-        //public ActionResult AddToPizzaOrder(int id)
-        //{
-        //    Models.Pizza pizzas = Repo.GetPizzaById(id);
-        //    IEnumerable<Models.PizzaOrder> pizzaOrders = Repo.GetAllPizzaOrders().ToList();
-        //   // pizzaOrders = pizzaOrders.Where(p => p.Pizza == null).ToList().Add(pizza);
-
-        //    foreach(var items in pizzaOrders)
-        //    {
-        //        if (items.Id == pizzas.Id)
-        //        {
-        //            _db.Add(items.Pizza);
-        //            _db.SaveChanges();
-        //        }
-        //    }
-
-
-        //    //ViewData["typesOfPizza"] = new SelectList(Repo.GetAllPizzas(), "Name", "CrustType");
-
-        //    return View(pizzas);
-
-        //}
         //// POST: PizzaOrders/Create
         //// To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         //// more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         //[ValidateAntiForgeryToken]
-        public ActionResult Create([Bind("Id,Quantity")] PizzaOrder pizzaOrder)
+        public ActionResult Create([Bind("Quantity,OrderId,Pizza")]PizzaOrder pizzaOrder)
         {
             if (ModelState.IsValid)
             {
-                Repo.AddPizzaOrders(pizzaOrder);
+                List<Pizza> selectedPizzas = new List<Pizza>();
+                var pizzas = Repo.GetAllPizzas();
+
+                var selectedIng = new List<Ingredients>();
+                var Ingredients = Repo.GetAllIngredients();
+
+                foreach(var item in pizzaOrder.Pizza)
+                {
+                    selectedPizzas.Add(item);
+                }
+
+              
+
+                PizzaOrder newPizzaOrder = new PizzaOrder
+                {
+                    Quantity =  pizzaOrder.Quantity,
+                    OrderId = pizzaOrder.OrderId,
+                    Pizza = selectedPizzas,
+                    //Ingredients = selectedIng
+                };
+
+                // Store store = Repo.GetStoreById(1);
+
+                Repo.AddPizzaOrders(newPizzaOrder);
 
                 Repo.Save();
-
-                Pizza pizza = new Pizza();
-                pizza = Repo.GetByPizzaId(pizzaOrder.Id);
-
-                return RedirectToAction("Create", "Pizza", pizza);
             }
-            // return View(restaurant);
-           // ViewData["Pizzas"] = new SelectList(Repo.GetAllPizzas(), "Name", "CrustTypes");
-           // ViewData["Ingredients"] = new SelectList(Repo.GetAllIngredients(), "Name", "CrustTypes");
             return View(pizzaOrder);
           
             //return View(pizzaOrder);

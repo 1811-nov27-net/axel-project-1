@@ -53,7 +53,6 @@ namespace PizzaStore.Repos
         {
             return Map(_db.Store
                     .Include(i => i.Ingredients)
-                    .Include(o => o.Orders)
                     .AsNoTracking().First(r => r.Id == id));
         }
 
@@ -61,6 +60,11 @@ namespace PizzaStore.Repos
         {
             return Map(_db.Pizza.Include(r => r.Ingredients)
                  .AsNoTracking().First(r => r.Id == id));
+        }
+        public Models.UserLocation GetUserLocationById(int id)
+        {
+            return Map(_db.UserLocation.Include(r => r.Orders)
+               .AsNoTracking().First(r => r.Id == id));
         }
         public Models.Orders GetOrderById(int id)
         {
@@ -82,9 +86,21 @@ namespace PizzaStore.Repos
             _db.Add(Map(store));
         }
 
-        public void AddIngredients(Models.Ingredients ingredients)
+        public void AddIngredients(Models.Ingredients ingredients, Models.Store store)
         {
-            _db.Add(Map(ingredients));
+            if (store != null)
+            {
+                // get the db's version of that restaurant
+                // (can't use Find with Include)
+               DataAccess.Store contextStore = _db.Store.Include(r => r.Ingredients)
+                    .First(r => r.Id == store.Id);
+                store.Ingredients.Add(ingredients);
+                contextStore.Ingredients.Add(Map(ingredients));
+            }
+            else
+            {
+                _db.Add(Map(ingredients));
+            }
         }
 
         public void AddOrders(Models.Orders orders)
@@ -113,21 +129,11 @@ namespace PizzaStore.Repos
         {
             return Map(_db.PizzaOrder.Include(po => po.Pizza).AsNoTracking().First(i => i.Id == id));
         }
-        public void AddPizza(Models.Pizza pizza, Models.PizzaOrder pizzaOrder)
+        public void AddPizza(Models.Pizza pizza)
         {
-            if (pizzaOrder != null)
-            {
-                // get the db's version of that restaurant
-                // (can't use Find with Include)
-                DataAccess.PizzaOrder contextPizzaOrder = _db.PizzaOrder.Include(po => po.Pizza)
-                    .First(po => po.Id == pizzaOrder.Id);
-            //    pizzaOrder.Pizza.(pizza);
-                contextPizzaOrder.Pizza.Add(Map(pizza));
-            }
-            else
-            {
+           
                 _db.Add(Map(pizza));
-            }
+         
         }
 
         public void UpdateUsers(Models.Users users)
@@ -298,9 +304,9 @@ namespace PizzaStore.Repos
         public static IEnumerable<DataAccess.Pizza> Map(IEnumerable<Models.Pizza> pizzas) => pizzas.Select(Map);
         public static IEnumerable<DataAccess.Ingredients> Map(IEnumerable<Models.Ingredients> ingredients) => ingredients.Select(Map);
         public static IEnumerable<DataAccess.Orders> Map(IEnumerable<Models.Orders> orders) => orders.Select(Map);
-        public static IEnumerable<DataAccess.UserLocation> Map(IEnumerable<Models.UserLocation> userLocations) => userLocations.Select(Map);       
+        public static IEnumerable<DataAccess.UserLocation> Map(IEnumerable<Models.UserLocation> userLocations) => userLocations.Select(Map);
 
-       
+    
     }
 
 }

@@ -27,6 +27,10 @@
 <div>
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
+    <a asp-controller="Ingredients" asp-action="Create"
+    asp-all-route-data="@(new Dictionary<string, string> { { "StoreId", Model.Id.ToString() } })">
+    Add New Ingredients
+    </a>
 </div>
 
 @if (Model.Ingredients.Any())
@@ -88,7 +92,7 @@
                         @Html.DisplayFor(modelItem => item.TotalDue)
                     </td>
                     <td>
-                        @Html.ActionLink("Details", "Details", "Orders", new { id = item.Id })       
+                        @Html.ActionLink("Details", "Details", "Orders", new { id = item.Id })
                     </td>
                 </tr>
             }

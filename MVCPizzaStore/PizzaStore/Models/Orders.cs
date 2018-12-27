@@ -13,6 +13,7 @@ namespace PizzaStore.Models
 
         public int ShopId { get; set; }
 
+        public int CustomerID { get; set; }
 
         public DateTime OrderTime { get; set; }
 

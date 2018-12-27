@@ -17,6 +17,7 @@ namespace PizzaStore.Repos
 
 
         Users GetUsersById(int id);
+        UserLocation GetUserLocationById(int id);
         Orders GetOrderById(int id);
         Pizza GetByPizzaId(int id);
         Ingredients GetIngredientsById(int id);
@@ -28,9 +29,9 @@ namespace PizzaStore.Repos
         void AddUserLocation(UserLocation userLocation);
         void AddOrders(Orders orders);       
         void AddPizzaOrders(PizzaOrder pizzaOrder);
-        void AddPizza(Pizza pizza, PizzaOrder pizzaOrder);
+        void AddPizza(Pizza pizza);
         void AddStores(Store store);
-        void AddIngredients(Ingredients ingredients);
+        void AddIngredients(Ingredients ingredients, Store store);
         void AddPizzaToPizzaOrder(Pizza pizza);
 
 

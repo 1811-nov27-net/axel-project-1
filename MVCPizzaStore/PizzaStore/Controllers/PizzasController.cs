@@ -7,6 +7,7 @@ using System.Linq;
 using PizzaStore.Repos;
 using PizzaStore.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace PizzaStore.Controllers
 {
@@ -38,13 +39,10 @@ namespace PizzaStore.Controllers
         }
 
         //  GET: Pizzas/Create
-        public ActionResult Create([FromQuery]int pizzaOrderId)
+        public ActionResult Create()
         {
-            var pizza = new Pizza
-            {
-                PizzaOrderId = pizzaOrderId
-            };
-        return View(pizza);
+            ViewData["IngredientList"] = new SelectList(Repo.GetAllIngredients(), "Id", "Name");
+            return View();
 
         }
 
@@ -53,28 +51,19 @@ namespace PizzaStore.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind("Id,Name,CrustType,LinePrice,PizzaOrderId")] Pizza pizza)
+        public ActionResult Create([Bind("Id,Name,CrustType,LinePrice,PizzaOrderId,IngredientsList")] Pizza pizza)
         {
             try
             {
-                if (!ModelState.IsValid)
+
+                if (ModelState.IsValid)
                 {
-                    return View(pizza);
+                    Repo.AddPizza(pizza);
+                    Repo.Save();
                 }
-
-              PizzaOrder pizzaOrder = Repo.GetPizzaOrderById(pizza.PizzaOrderId);
-                var pizzas = new Pizza
-                {
-                    Name = pizza.Name,
-                    CrustType = pizza.CrustType,
-                    LinePrice = pizza.LinePrice,            
-                };
-
-                Repo.AddPizza(pizzas, pizzaOrder);
-                Repo.Save();
-
-                return RedirectToAction(nameof(PizzaOrdersController.Details),
-                    "Pizza", new { id = pizza.PizzaOrderId });
+                
+                ViewData["IngredientList"] = new SelectList(Repo.GetAllIngredients(), "Id", "Name", pizza.IngredientId);
+                return View(pizza);
             }
             catch
             {
@@ -83,91 +72,68 @@ namespace PizzaStore.Controllers
         }
 
         //// GET: Pizzas/Edit/5
-        //public async Task<IActionResult> Edit(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
+        public ActionResult Edit(int id)
+        {
 
-        //    var pizza = await Repo.Pizza.FindAsync(id);
-        //    if (pizza == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    ViewData["PizzaOrderId"] = new SelectList(Repo.PizzaOrder, "Id", "Id", pizza.PizzaOrderId);
-        //    return View(pizza);
-        //}
+            Pizza pizza = Repo.GetByPizzaId(id);
 
-        //// POST: Pizzas/Edit/5
-        //// To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        //// more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CrustType,LinePrice,PizzaOrderId")] Models.Pizza pizza)
-        //{
-        //    if (id != pizza.Id)
-        //    {
-        //        return NotFound();
-        //    }
+            return View(pizza);
+        }
 
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            Repo.Update(pizza);
-        //            await Repo.SaveChangesAsync();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!PizzaExists(pizza.Id))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    ViewData["PizzaOrderId"] = new SelectList(Repo.PizzaOrder, "Id", "Id", pizza.PizzaOrderId);
-        //    return View(pizza);
-        //}
+        // POST: Stores/Edit/5
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit([FromRoute]int id, [Bind("Name,CrustType,LinePrice,PizzaOrderId")] Pizza pizza)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var updated = Repo.GetByPizzaId(id);
+                    updated.Name = pizza.Name;
+                    updated.CrustType = pizza.CrustType;
+                    updated.LinePrice = pizza.LinePrice;
+                    Repo.UpdatePizza(updated);
+                    Repo.Save();
 
-        //// GET: Pizzas/Delete/5
-        //public async Task<IActionResult> Delete(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(pizza);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return View(pizza);
+            }
 
-        //    var pizza = await Repo.Pizza
-        //        .Include(p => p.PizzaOrder)
-        //        .FirstOrDefaultAsync(m => m.Id == id);
-        //    if (pizza == null)
-        //    {
-        //        return NotFound();
-        //    }
+        }
 
-        //    return View(pizza);
-        //}
+        // GET: Stores/Delete/5
+        public ActionResult Delete(int id)
+        {
+            Pizza pizza = Repo.GetByPizzaId(id);
 
-        //// POST: Pizzas/Delete/5
-        //[HttpPost, ActionName("Delete")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteConfirmed(int id)
-        //{
-        //    var pizza = await Repo.Pizza.FindAsync(id);
-        //    Repo.Pizza.Remove(pizza);
-        //    await Repo.SaveChangesAsync();
-        //    return RedirectToAction(nameof(Index));
-        //}
+            return View(pizza);
+        }
 
-        //private bool PizzaExists(int id)
-        //{
-        //    return Repo.Pizza.Any(e => e.Id == id);
-        //}
+        // POST: Stores/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(int id, [BindNever]IFormCollection collection)
+        {
+            try
+            {
+                Repo.DeletePizza(id);
+
+                Repo.Save();
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                return View();
+            }
+        }
     }
 }

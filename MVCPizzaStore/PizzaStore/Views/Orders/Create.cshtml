@@ -1,4 +1,4 @@
-﻿@model PizzaStore.Models.Orders
+﻿@model PizzaStore.DataAccess.Orders
 
 @{
     ViewData["Title"] = "Create";
@@ -13,20 +13,16 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="UserLocationId" class="control-label"></label>
+                <label asp-for="UserLocationId" class="control-label">User Location</label>
                 <select asp-for="UserLocationId" class ="form-control" asp-items="ViewBag.UserLocationId"></select>
             </div>
             <div class="form-group">
-                <label asp-for="ShopId" class="control-label"></label>
+                <label asp-for="ShopId" class="control-label">Store</label>
                 <select asp-for="ShopId" class ="form-control" asp-items="ViewBag.ShopId"></select>
             </div>
+            
             <div class="form-group">
-                <label asp-for="OrderTime" class="control-label"></label>
-                <input asp-for="OrderTime" class="form-control" />
-                <span asp-validation-for="OrderTime" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TotalDue" class="control-label"></label>
+                <label asp-for="TotalDue" class="control-label">Total Due</label>
                 <input asp-for="TotalDue" class="form-control" />
                 <span asp-validation-for="TotalDue" class="text-danger"></span>
             </div>

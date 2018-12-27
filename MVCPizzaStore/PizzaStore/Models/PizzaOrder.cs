@@ -15,5 +15,6 @@ namespace PizzaStore.Models
         public int OrderId { get; set; }
 
         public List<Pizza> Pizza { get; set; } = new List<Pizza>();
+      
     }
 }
